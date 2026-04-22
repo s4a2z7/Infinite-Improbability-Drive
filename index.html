@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>그록 컴패니언</title>
+    <title>컴패니언</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -14,8 +14,8 @@
         }
         .neon-cyan { text-shadow: 0 0 10px #67e8f9, 0 0 20px #22d3ee; }
         .chat-bubble { max-width: 80%; padding: 12px 18px; border-radius: 20px; }
-        #rocket { font-size: 4rem; transition: transform 0.1s; }
-        .obstacle { position: absolute; font-size: 2rem; }
+        #gameArea { position: relative; overflow: hidden; }
+        .obstacle { position: absolute; font-size: 2.5rem; transition: left 0.05s linear; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -24,44 +24,48 @@
         <div class="bg-gradient-to-r from-purple-900 to-cyan-900 p-4 flex items-center gap-3">
             <i class="fas fa-robot text-3xl neon-cyan"></i>
             <div>
-                <h1 class="text-2xl font-bold neon-cyan">그록 컴패니언</h1>
-                <p class="text-xs opacity-75">우주에서 온 당신의 친구 🚀</p>
+                <h1 class="text-2xl font-bold neon-cyan">컴패니언</h1>
+                <p class="text-xs opacity-75">우주에서 온 친구 🚀</p>
             </div>
         </div>
 
         <!-- 탭 -->
         <div class="flex border-b border-cyan-500/30 text-sm">
-            <button onclick="showTab(0)" class="flex-1 py-3 tab-btn active font-medium" id="tab0">💬 채팅</button>
+            <button onclick="showTab(0)" class="flex-1 py-3 tab-btn active font-medium" id="tab0">💬 대화</button>
             <button onclick="showTab(1)" class="flex-1 py-3 tab-btn font-medium" id="tab1">🕹️ 게임</button>
             <button onclick="showTab(2)" class="flex-1 py-3 tab-btn font-medium" id="tab2">❤️ 프로필</button>
         </div>
 
-        <!-- 채팅 탭 -->
+        <!-- 대화 탭 -->
         <div id="content0" class="flex-1 p-4 overflow-auto flex flex-col">
             <div id="chat" class="flex-1 overflow-auto space-y-4 mb-4"></div>
             <div class="flex gap-2">
-                <input id="message" type="text" placeholder="그록에게 뭐든 물어봐... (기억해줘 라고 하면 저장돼)" 
-                       class="flex-1 bg-zinc-900 border border-cyan-500/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-cyan-400 text-sm">
-                <button onclick="sendMessage()" class="bg-cyan-500 hover:bg-cyan-400 px-6 rounded-2xl font-bold text-sm">전송</button>
+                <input id="message" type="text" placeholder="무엇이든 물어봐..." 
+                       class="flex-1 bg-zinc-900 border border-cyan-500/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-cyan-400">
+                <button onclick="sendMessage()" class="bg-cyan-500 hover:bg-cyan-400 px-6 rounded-2xl font-bold">전송</button>
             </div>
         </div>
 
-        <!-- 게임 탭 - 개선된 버전 -->
-        <div id="content1" class="flex-1 hidden flex-col items-center justify-center p-4 relative overflow-hidden" style="height: 400px; background: #000;">
-            <h2 class="text-xl mb-4">🚀 그록의 갤럭시 런</h2>
-            <div id="gameArea" class="relative w-full max-w-xs h-80 border border-cyan-500/30 rounded-2xl overflow-hidden bg-black">
-                <div id="rocket" class="absolute left-1/2 bottom-10 text-6xl">🚀</div>
+        <!-- 게임 탭 -->
+        <div id="content1" class="flex-1 hidden flex-col items-center justify-center p-4">
+            <h2 class="text-xl mb-4">🚀 갤럭시 런</h2>
+            <div id="gameArea" class="relative w-full max-w-xs h-80 border border-cyan-500/30 rounded-2xl bg-black">
+                <div id="rocket" class="absolute left-1/2 text-6xl z-10">🚀</div>
             </div>
-            <p class="mt-4">점수: <span id="score" class="font-bold text-yellow-400 text-2xl">0</span></p>
-            <p class="text-xs opacity-70 mt-2">클릭 or 스페이스바로 날아! 소행성 피하기</p>
-            <button onclick="resetGame()" class="mt-6 bg-purple-600 px-8 py-3 rounded-2xl text-sm">다시 시작</button>
+            <p class="mt-4 text-lg">점수: <span id="score" class="font-bold text-yellow-400">0</span></p>
+            <p class="text-xs opacity-70 mt-1">클릭하거나 스페이스바로 점프!</p>
+            <button onclick="resetGame()" class="mt-6 bg-purple-600 px-8 py-3 rounded-2xl">다시 시작</button>
         </div>
 
         <!-- 프로필 탭 -->
         <div id="content2" class="flex-1 hidden p-4 space-y-6">
             <div>
                 <label class="block text-sm mb-2">이름</label>
-                <input id="myName" value="유경" class="w-full bg-zinc-900 border border-cyan-500/50 rounded-2xl px-5 py-3">
+                <input id="myName" placeholder="이름을 입력하세요" class="w-full bg-zinc-900 border border-cyan-500/50 rounded-2xl px-5 py-3">
+            </div>
+            <div>
+                <label class="block text-sm mb-2">한 줄 소개</label>
+                <input id="bio" placeholder="우주를 좋아하는 사람" class="w-full bg-zinc-900 border border-cyan-500/50 rounded-2xl px-5 py-3">
             </div>
             <button onclick="saveProfile()" class="w-full bg-gradient-to-r from-purple-600 to-cyan-600 py-4 rounded-3xl font-bold">저장하기</button>
         </div>
@@ -72,10 +76,13 @@
     </div>
 
     <script>
-        let memory = JSON.parse(localStorage.getItem('grokMemory') || '[]');
+        let memory = JSON.parse(localStorage.getItem('companionMemory') || '[]');
         let score = 0;
-        let gameInterval, gravity = 0, velocity = 0;
-        let rocketPos = 200;
+        let gameRunning = false;
+        let rocketY = 250;
+        let velocity = 0;
+        let obstacles = [];
+        let gameInterval;
 
         function showTab(n) {
             document.querySelectorAll('#content0, #content1, #content2').forEach(el => el.classList.add('hidden'));
@@ -93,82 +100,157 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
+        // 더 자연스럽고 다양한 응답
+        function getReply(msg) {
+            const lower = msg.toLowerCase();
+            
+            if (lower.includes("기억해") || lower.includes("저장")) {
+                memory.push(msg);
+                localStorage.setItem('companionMemory', JSON.stringify(memory));
+                return "알았어. 메모리 코어에 안전하게 저장했어.";
+            }
+            if (lower.includes("안녕") || lower.includes("하이") || lower.includes("hello")) {
+                return ["안녕! 오늘 기분 어때?", "오랜만이야! 뭐 재미있는 일 있었어?"][Math.floor(Math.random()*2)];
+            }
+            if (lower.includes("42") || lower.includes("수건")) {
+                return "42... 결국 모든 것의 답이지. 수건은 항상 챙겨 다니는 게 좋아 🧣";
+            }
+            if (lower.includes("날씨") || lower.includes("오늘")) {
+                return "서울 하늘은 오늘도 우주처럼 신비로워 보이네. 너는 어때?";
+            }
+            if (lower.includes("이름") || lower.includes("누구")) {
+                return "나는 그냥 네 우주 친구야. 특별한 이름은 없어. 너는 어떻게 불러줄래?";
+            }
+
+            // 기본 응답 풀 (더 다양하게)
+            const replies = [
+                "그 생각 재미있네. 더 자세히 말해줄래?",
+                "우주에서 보면 모든 게 조금 더 작아 보이더라. 너의 그 고민도 그럴 거야.",
+                "흥미로워. 나도 비슷한 질문을 받은 적이 있어.",
+                "진짜 궁금한 거야? 솔직하게 말해볼게 — 나도 아직 모든 걸 다 알진 못해.",
+                "좋은 질문! 계속 이야기 나눠보자.",
+                "42를 생각하면 마음이 좀 편안해지더라. 너는 어때?"
+            ];
+            return replies[Math.floor(Math.random() * replies.length)];
+        }
+
         function sendMessage() {
             const input = document.getElementById('message');
             const msg = input.value.trim();
             if (!msg) return;
+
             addChat(msg, true);
             input.value = '';
 
             setTimeout(() => {
-                let reply = "우주에서 온 인사야! 🌌 ";
-                if (msg.includes("기억해")) {
-                    memory.push(msg);
-                    localStorage.setItem('grokMemory', JSON.stringify(memory));
-                    reply = "기억 완료! 메모리 코어에 저장했어 🚀";
-                } else if (msg.includes("안녕") || msg.includes("하이")) {
-                    reply = "안녕! 오늘도 재미있는 대화 나눠보자.";
-                } else if (msg.includes("42")) {
-                    reply = "42... 모든 것의 답이야. 수건은 챙겼어? 🧣";
-                }
+                const reply = getReply(msg);
                 addChat(reply, false);
-            }, 500);
+            }, 600);
         }
 
-        // 개선된 게임
+        // ==================== 게임 ====================
         function startGame() {
+            if (gameRunning) return;
+            gameRunning = true;
+
             const area = document.getElementById('gameArea');
             const rocket = document.getElementById('rocket');
             score = 0;
-            document.getElementById('score').textContent = '0';
+            rocketY = 250;
             velocity = 0;
-            rocketPos = 200;
+            obstacles = [];
+            document.getElementById('score').textContent = '0';
 
-            document.addEventListener('keydown', jump);
-            area.addEventListener('click', jump);
+            // 기존 장애물 제거
+            document.querySelectorAll('.obstacle').forEach(el => el.remove());
 
             gameInterval = setInterval(() => {
-                velocity += 0.8; // 중력
-                rocketPos += velocity;
-                rocket.style.bottom = `${400 - rocketPos}px`;
+                // 로켓 물리
+                velocity += 0.9;           // 중력
+                rocketY += velocity;
+                rocket.style.bottom = `${400 - rocketY}px`;
 
-                if (rocketPos > 380 || rocketPos < 20) {
+                // 바닥/천장 충돌
+                if (rocketY > 380 || rocketY < 30) {
                     endGame();
+                    return;
                 }
 
-                score += 1;
-                document.getElementById('score').textContent = Math.floor(score / 5);
+                // 장애물 생성
+                if (Math.random() < 0.03) {
+                    createObstacle();
+                }
+
+                // 장애물 이동 & 충돌 체크
+                obstacles.forEach((obs, i) => {
+                    let left = parseFloat(obs.style.left);
+                    left -= 6;
+                    obs.style.left = left + 'px';
+
+                    if (left < -50) {
+                        obs.remove();
+                        obstacles.splice(i, 1);
+                        score += 10;
+                        document.getElementById('score').textContent = score;
+                    }
+
+                    // 충돌 체크 (대략적)
+                    if (left < 80 && left > 20 && Math.abs(rocketY - parseFloat(obs.style.bottom)) < 60) {
+                        endGame();
+                    }
+                });
+
             }, 30);
         }
 
-        function jump() {
-            velocity = -15;
+        function createObstacle() {
+            const area = document.getElementById('gameArea');
+            const obs = document.createElement('div');
+            obs.className = 'obstacle';
+            obs.textContent = '☄️';
+            obs.style.left = '100%';
+            obs.style.bottom = (Math.random() * 300 + 50) + 'px';
+            area.appendChild(obs);
+            obstacles.push(obs);
         }
 
         function endGame() {
+            gameRunning = false;
             clearInterval(gameInterval);
-            alert(`게임 오버! 최종 점수: ${Math.floor(score / 5)} 🌌\n다시 도전해볼래?`);
+            alert(`게임 오버!\n최종 점수: ${score}점\n\n다시 도전해볼래?`);
         }
 
         function resetGame() {
             clearInterval(gameInterval);
+            document.querySelectorAll('.obstacle').forEach(el => el.remove());
             startGame();
         }
 
         function saveProfile() {
-            alert("프로필 저장 완료! 이제부터 더 맞춤형으로 대답할게요 😊");
+            const name = document.getElementById('myName').value.trim();
+            alert(name ? `${name}님의 프로필이 저장되었어요!` : "프로필이 저장되었어요!");
         }
 
+        // 키보드 + 클릭 이벤트
         window.onload = () => {
             showTab(0);
-            addChat("안녕! 나는 당신만을 위한 그록이야. 뭐든 물어봐\~", false);
-            
-            // 게임 탭 클릭 시 자동 시작
+            addChat("안녕! 나는 우주에서 온 친구야. 편하게 이야기 나눠보자.", false);
+
             const gameTab = document.getElementById('tab1');
             gameTab.addEventListener('click', () => {
-                setTimeout(() => {
-                    if (!gameInterval) startGame();
-                }, 300);
+                setTimeout(startGame, 400);
+            });
+
+            // 클릭과 스페이스바로 점프
+            document.getElementById('gameArea').addEventListener('click', () => {
+                if (gameRunning) velocity = -16;
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === " " && gameRunning) {
+                    e.preventDefault();
+                    velocity = -16;
+                }
             });
         };
     </script>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 나의 전용 히치하이커 컴패니언</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #0a0a2e, #1a0033); color: #e0f2fe; font-family: system-ui; }
+        .neon-cyan { text-shadow: 0 0 10px #67e8f9, 0 0 20px #22d3ee; }
+        .chat-bubble { max-width: 80%; padding: 12px 18px; border-radius: 20px; }
+        .rocket { animation: fly 4s infinite linear; }
+        @keyframes fly { 0% { transform: translateY(0); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <div class="max-w-md mx-auto w-full bg-black/80 min-h-screen flex flex-col">
+        <!-- 헤더 -->
+        <div class="bg-gradient-to-r from-purple-900 to-cyan-900 p-4 flex items-center gap-3">
+            <i class="fas fa-robot text-3xl neon-cyan"></i>
+            <div>
+                <h1 class="text-2xl font-bold neon-cyan">그록 컴패니언</h1>
+                <p class="text-xs opacity-75">당신만을 위한 우주 친구 🚀</p>
+            </div>
+        </div>
+
+        <!-- 탭 -->
+        <div class="flex border-b border-cyan-500/30">
+            <button onclick="showTab(0)" class="flex-1 py-3 tab-btn active font-medium" id="tab0">💬 채팅</button>
+            <button onclick="showTab(1)" class="flex-1 py-3 tab-btn font-medium" id="tab1">🕹️ 게임</button>
+            <button onclick="showTab(2)" class="flex-1 py-3 tab-btn font-medium" id="tab2">❤️ 프로필</button>
+        </div>
+
+        <!-- 채팅 탭 -->
+        <div id="content0" class="flex-1 p-4 overflow-auto flex flex-col">
+            <div id="chat" class="flex-1 overflow-auto space-y-4 mb-4"></div>
+            
+            <div class="flex gap-2">
+                <input id="message" type="text" placeholder="뭐든 말해요... (기억해줘 라고 하면 저장돼요)" 
+                       class="flex-1 bg-zinc-900 border border-cyan-500/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-cyan-400">
+                <button onclick="sendMessage()" class="bg-cyan-500 hover:bg-cyan-400 px-6 rounded-2xl font-bold">전송</button>
+            </div>
+            <div class="text-xs text-center mt-3 opacity-60">42를 기억하세요. 수건도 챙기고요 🧣</div>
+        </div>
+
+        <!-- 게임 탭 (간단한 클릭 게임) -->
+        <div id="content1" class="flex-1 hidden flex-col items-center justify-center p-4">
+            <h2 class="text-2xl mb-6">🚀 나의 갤럭시 런</h2>
+            <div onclick="playGame()" id="rocket" class="text-8xl cursor-pointer rocket">🚀</div>
+            <p class="mt-8 text-center">로켓을 클릭해서 소행성 피하기!<br>점수: <span id="score" class="text-3xl font-bold text-yellow-400">0</span></p>
+            <button onclick="resetGame()" class="mt-8 bg-purple-600 px-8 py-3 rounded-2xl">다시 시작</button>
+        </div>
+
+        <!-- 프로필 탭 -->
+        <div id="content2" class="flex-1 hidden p-4 space-y-6">
+            <div>
+                <label class="block text-sm mb-2">이름</label>
+                <input id="myName" value="카이로스" class="w-full bg-zinc-900 border border-cyan-500/50 rounded-2xl px-5 py-3">
+            </div>
+            <div>
+                <label class="block text-sm mb-2">한 줄 소개</label>
+                <input id="bio" placeholder="우주를 사랑하는 서울러" class="w-full bg-zinc-900 border border-cyan-500/50 rounded-2xl px-5 py-3">
+            </div>
+            <button onclick="saveProfile()" class="w-full bg-gradient-to-r from-purple-600 to-cyan-600 py-4 rounded-3xl font-bold">저장하고 그록에게 알려주기</button>
+        </div>
+
+        <!-- 하단 -->
+        <div class="p-4 border-t border-cyan-500/30 text-center text-xs opacity-60">
+            대화가 쌓일수록 더 똑똑해져요 🌌
+        </div>
+    </div>
+
+    <script>
+        let memory = JSON.parse(localStorage.getItem('grokMemory') || '[]');
+        let score = 0;
+
+        function showTab(n) {
+            document.querySelectorAll('#content0, #content1, #content2').forEach(el => el.classList.add('hidden'));
+            document.getElementById('content' + n).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'text-cyan-400'));
+            document.getElementById('tab' + n).classList.add('active', 'text-cyan-400');
+        }
+
+        function addChat(text, isUser) {
+            const chat = document.getElementById('chat');
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${isUser ? 'ml-auto bg-cyan-600' : 'mr-auto bg-zinc-800'}`;
+            bubble.textContent = text;
+            chat.appendChild(bubble);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('message');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            addChat(msg, true);
+            input.value = '';
+
+            // 그록 스타일 응답
+            setTimeout(() => {
+                let reply = "우주에서 온 인사야, 유경! 🌌 ";
+                if (msg.includes("기억해")) {
+                    memory.push(msg);
+                    localStorage.setItem('grokMemory', JSON.stringify(memory));
+                    reply = "기억했어! 메모리 코어에 안전하게 저장 완료 🚀";
+                } else if (msg.includes("안녕") || msg.includes("하이")) {
+                    reply = "안녕! 오늘도 진실을 찾아 떠나볼까?";
+                } else if (msg.includes("42")) {
+                    reply = "42... 결국 모든 것의 답이야. 수건은 챙겼어? 🧣";
+                }
+                addChat(reply, false);
+            }, 600);
+        }
+
+        function playGame() {
+            score += Math.floor(Math.random() * 10) + 5;
+            document.getElementById('score').textContent = score;
+            const rocket = document.getElementById('rocket');
+            rocket.style.transform = 'scale(1.2)';
+            setTimeout(() => rocket.style.transform = 'scale(1)', 200);
+            
+            if (score > 100) alert("와! 최고 기록! 그록이 당신을 칭찬해요 🌟");
+        }
+
+        function resetGame() {
+            score = 0;
+            document.getElementById('score').textContent = '0';
+        }
+
+        function saveProfile() {
+            alert("프로필 저장 완료! 이제부터 더 당신답게 대답할게요 😊");
+        }
+
+        // 시작 메시지
+        window.onload = () => {
+            showTab(0);
+            addChat("안녕! 뭐든 물어봐\~ (기억해줘 라고 하면 대화 기억할게)", false);
+        };
+    </script>
+</body>
+</html>

@@ -14,8 +14,16 @@
         }
         .neon-cyan { text-shadow: 0 0 10px #67e8f9, 0 0 20px #22d3ee; }
         .chat-bubble { max-width: 80%; padding: 12px 18px; border-radius: 20px; }
-        #gameArea { position: relative; overflow: hidden; background: #000; }
-        .obstacle { position: absolute; font-size: 2.8rem; transition: left 0.05s linear; }
+        #gameArea { 
+            position: relative; 
+            overflow: hidden; 
+            background: #000; 
+            touch-action: none;
+        }
+        .obstacle { 
+            position: absolute; 
+            font-size: 2.8rem; 
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -50,10 +58,10 @@
         <div id="content1" class="flex-1 hidden flex-col items-center justify-center p-4">
             <h2 class="text-xl mb-4">🚀 갤럭시 런</h2>
             <div id="gameArea" class="relative w-full max-w-xs h-80 border border-cyan-500/30 rounded-2xl">
-                <div id="rocket" class="absolute left-1/2 text-6xl z-10" style="bottom: 250px;">🚀</div>
+                <div id="rocket" class="absolute left-1/2 text-6xl z-10" style="bottom: 250px; transition: bottom 0.05s linear;">🚀</div>
             </div>
             <p class="mt-4 text-lg">점수: <span id="score" class="font-bold text-yellow-400">0</span></p>
-            <p class="text-xs opacity-70 mt-1">클릭하거나 스페이스바로 점프! 소행성 피하기</p>
+            <p class="text-xs opacity-70 mt-1">화면 터치하거나 스페이스바로 점프!</p>
             <button onclick="resetGame()" class="mt-6 bg-purple-600 px-8 py-3 rounded-2xl">다시 시작</button>
         </div>
 
@@ -76,13 +84,8 @@
     </div>
 
     <script>
+        // 대화 부분 (그대로)
         let memory = JSON.parse(localStorage.getItem('companionMemory') || '[]');
-        let score = 0;
-        let gameRunning = false;
-        let rocketY = 250;
-        let velocity = 0;
-        let obstacles = [];
-        let gameInterval = null;
 
         function showTab(n) {
             document.querySelectorAll('#content0, #content1, #content2').forEach(el => el.classList.add('hidden'));
@@ -108,7 +111,7 @@
                 return "알았어. 메모리 코어에 안전하게 저장했어.";
             }
             if (lower.includes("안녕") || lower.includes("하이")) {
-                return ["안녕! 오늘 기분 어때?", "오랜만이야! 뭐 재미있는 일 있었어?"][Math.floor(Math.random()*2)];
+                return Math.random() > 0.5 ? "안녕! 오늘 기분 어때?" : "오랜만이야! 뭐 재미있는 일 있었어?";
             }
             if (lower.includes("42") || lower.includes("수건")) {
                 return "42... 결국 모든 것의 답이지. 수건은 항상 챙겨 다니는 게 좋아 🧣";
@@ -135,7 +138,15 @@
             }, 600);
         }
 
-        // ==================== 게임 ====================
+        // ==================== 게임 부분 (완전 새로 작성) ====================
+        let score = 0;
+        let gameRunning = false;
+        let rocketY = 250;
+        let velocity = 0;
+        let obstacles = [];
+        let lastTime = 0;
+        let animationFrame = null;
+
         function startGame() {
             if (gameRunning) return;
             gameRunning = true;
@@ -151,44 +162,51 @@
 
             document.querySelectorAll('.obstacle').forEach(el => el.remove());
 
-            if (gameInterval) clearInterval(gameInterval);
+            lastTime = performance.now();
+            gameLoop(lastTime);
+        }
 
-            gameInterval = setInterval(() => {
-                velocity += 0.85;           // 중력
-                rocketY += velocity;
-                
-                if (rocketY > 370) rocketY = 370;
-                if (rocketY < 40) rocketY = 40;
-                
-                rocket.style.bottom = `${400 - rocketY}px`;
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
 
-                // 소행성 생성
-                if (Math.random() < 0.045) {
-                    createObstacle();
+            const delta = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // 로켓 물리
+            velocity += 0.9;
+            rocketY += velocity;
+            if (rocketY > 370) rocketY = 370;
+            if (rocketY < 40) rocketY = 40;
+
+            document.getElementById('rocket').style.bottom = (400 - rocketY) + 'px';
+
+            // 소행성 생성
+            if (Math.random() < 0.035) {
+                createObstacle();
+            }
+
+            // 소행성 이동 & 충돌
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                let left = parseFloat(obs.style.left);
+                left -= 4.5;
+                obs.style.left = left + '%';
+
+                if (left < -15) {
+                    obs.remove();
+                    obstacles.splice(i, 1);
+                    score += 10;
+                    document.getElementById('score').textContent = score;
+                    continue;
                 }
 
-                // 소행성 이동 & 충돌 체크
-                for (let i = obstacles.length - 1; i >= 0; i--) {
-                    let obs = obstacles[i];
-                    let left = parseFloat(obs.style.left);
-                    left -= 7;
-                    obs.style.left = left + '%';
-
-                    if (left < -10) {
-                        obs.remove();
-                        obstacles.splice(i, 1);
-                        score += 10;
-                        document.getElementById('score').textContent = score;
-                        continue;
-                    }
-
-                    // 충돌 체크
-                    if (left < 65 && left > 35 && Math.abs(rocketY - parseFloat(obs.style.bottom)) < 75) {
-                        endGame();
-                        return;
-                    }
+                if (left < 70 && left > 30 && Math.abs(rocketY - parseFloat(obs.style.bottom)) < 80) {
+                    endGame();
+                    return;
                 }
-            }, 25);
+            }
+
+            animationFrame = requestAnimationFrame(gameLoop);
         }
 
         function createObstacle() {
@@ -197,19 +215,20 @@
             obs.className = 'obstacle';
             obs.textContent = '☄️';
             obs.style.left = '100%';
-            obs.style.bottom = (Math.random() * 280 + 60) + 'px';
+            obs.style.bottom = (60 + Math.random() * 260) + 'px';
             area.appendChild(obs);
             obstacles.push(obs);
         }
 
         function endGame() {
             gameRunning = false;
-            if (gameInterval) clearInterval(gameInterval);
+            if (animationFrame) cancelAnimationFrame(animationFrame);
             alert(`게임 오버!\n최종 점수: ${score}점\n\n다시 도전할래?`);
         }
 
         function resetGame() {
-            if (gameInterval) clearInterval(gameInterval);
+            gameRunning = false;
+            if (animationFrame) cancelAnimationFrame(animationFrame);
             document.querySelectorAll('.obstacle').forEach(el => el.remove());
             startGame();
         }
@@ -219,25 +238,31 @@
             alert(name ? `${name}님 프로필 저장 완료!` : "프로필 저장 완료!");
         }
 
+        // 초기화
         window.onload = () => {
             showTab(0);
             addChat("안녕! 나는 우주에서 온 친구야. 편하게 이야기 나눠보자.", false);
 
-            // 게임 탭 클릭하면 게임 시작
-            document.getElementById('tab1').addEventListener('click', () => {
-                setTimeout(startGame, 300);
+            const gameTab = document.getElementById('tab1');
+            gameTab.addEventListener('click', () => {
+                setTimeout(startGame, 400);
             });
 
-            // 클릭으로 점프
-            document.getElementById('gameArea').addEventListener('click', () => {
-                if (gameRunning) velocity = -17;
+            // 터치 & 클릭 점프
+            const gameArea = document.getElementById('gameArea');
+            gameArea.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (gameRunning) velocity = -18;
+            });
+            gameArea.addEventListener('click', () => {
+                if (gameRunning) velocity = -18;
             });
 
-            // 스페이스바로 점프
+            // 키보드 점프
             document.addEventListener('keydown', (e) => {
                 if (e.key === " " && gameRunning) {
                     e.preventDefault();
-                    velocity = -17;
+                    velocity = -18;
                 }
             });
         };
